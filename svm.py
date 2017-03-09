@@ -16,7 +16,6 @@ Created on Wed Feb 22 22:00:24 2017
 import sys
 from sklearn import svm
 import numpy as np
-
 import getseqs
 
 
@@ -32,6 +31,7 @@ test_path = '/home/egoitz/Data/Datasets/Time/SCATE/anafora-annotations/TimeNorm/
 out_path = 'out/test/'
 
 links, entities, sequences,  max_seq = getseqs.getdata(train_path)
+
 (types, types2idx,
  parentsTypes, parentsTypes2dx,
  linkTypes, linkTypes2idx) = getseqs.build_vocabs(links, entities, sequences)
@@ -44,7 +44,6 @@ data_x, data_y, out_class = getseqs.data_to_pair2lab_vector(links, entities, seq
 #data_x, data_y = getseqs.balance_data(data_x, data_y, out_class)
 #class_weights = getseqs.weight_classes(linkTypes)
 
-
 # The model
 #svc = svm.SVC(class_weight=class_weights)
 #svc = svm.SVC(class_weight='balanced')
@@ -53,7 +52,8 @@ svc.fit(data_x, data_y)
 
 
 # Testing
-links, entities, sequences,  _ = getseqs.getdata(test_path)
+entities, sequences,  _ = getseqs.get_testdata(test_path)
+links = dict()
 data_x, _, _ = getseqs.data_to_pair2lab_vector(links, entities, sequences, max_seq,
                                         types2idx, len(types),
                                         parentsTypes2dx, len(parentsTypes),

@@ -14,7 +14,7 @@ Created on Wed Feb 22 22:00:24 2017
 @author: egoitz
 """
 import sys
-from keras.layers import Input, LSTM, TimeDistributed, Dense, Masking, Dropout
+from keras.layers import Input, LSTM, TimeDistributed, Dense, Masking, Dropout, GRU
 from keras.models import Model
 import numpy as np
 
@@ -47,9 +47,10 @@ feat_size = 2 * len(types) + 2 * len(parentsTypes)
 
 input_layer = Input(shape=(max_seq,feat_size), dtype='float32', name="inputs")
 masked_input = Masking(mask_value=-1)(input_layer)
-lstm = LSTM(70,return_sequences=True, name="lstm")(masked_input)
-dropout = Dropout(0.3,name="droput")(lstm)
-top = TimeDistributed(Dense(len(linkTypes), activation='softmax'), name="top")(lstm)
+dropout = Dropout(0.3,name="droput")(masked_input)
+lstm = GRU(100,return_sequences=True, name="lstm")(dropout)
+hidden = TimeDistributed(Dense(200, activation='relu'), name="hidden")(lstm)
+top = TimeDistributed(Dense(len(linkTypes), activation='softmax'), name="top")(hidden)
 model = Model(input=input_layer, output=top)
 model.compile('adadelta', 'categorical_crossentropy', metrics=['accuracy'])
 model.fit(data_x, data_y, batch_size=batch_size, nb_epoch=epochs, validation_split=val_split)

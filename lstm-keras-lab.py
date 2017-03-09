@@ -14,9 +14,10 @@ Created on Wed Feb 22 22:00:24 2017
 @author: egoitz
 """
 import sys
+import numpy as np
+np.random.seed(55555)
 from keras.layers import Input, LSTM, GRU, TimeDistributed, Dense, Masking, Dropout
 from keras.models import Model
-import numpy as np
 
 import getseqs
 
@@ -43,27 +44,35 @@ data_x, data_y, out_class = getseqs.data_to_seq2lab_vector(links, entities, sequ
                                                            linkTypes2idx, len(linkTypes))
 feat_size = 3 * len(types) + 3 * len(parentsTypes)
 
+print np.shape(data_x)
+print np.shape(data_y)
+
 #data_x, data_y = getseqs.balance_data(data_x, data_y, out_class)
 
 # The model
 input_layer = Input(shape=(max_seq,feat_size), dtype='float32', name="inputs")
-masked_input = Masking(mask_value=-1)(input_layer)
+masked_input = Masking(mask_value=0)(input_layer)
 dropout = Dropout(0.3,name="droput")(masked_input)
-lstm = GRU(70, name="lstm")(dropout)
+lstm = GRU(100, name="lstm")(dropout)
 #dropout = Dropout(0.3,name="droput")(lstm)
-top = Dense(len(linkTypes), activation='softmax', name="top")(lstm)
+hidden1 = Dense(200, activation='relu', name="hidden1")(lstm)
+hidden2 = Dense(200, activation='relu', name="hidden2")(lstm)
+top = Dense(len(linkTypes), activation='softmax', name="top")(hidden2)
 model = Model(input=input_layer, output=top)
 model.compile('adadelta', 'categorical_crossentropy', metrics=['accuracy'])
 model.fit(data_x, data_y, batch_size=batch_size, nb_epoch=epochs, validation_split=val_split)
 
 
 # Testing
-links, entities, sequences,  _ = getseqs.getdata(test_path)
+entities, sequences,  _ = getseqs.get_testdata(test_path)
+links = dict()
 data_x, _, _ = getseqs.data_to_seq2lab_vector(links, entities, sequences, max_seq,
                                               types2idx, len(types),
                                               parentsTypes2dx, len(parentsTypes),
                                               linkTypes2idx, len(linkTypes))
 
+
+print np.shape(data_x)
 
 predictions = model.predict(data_x,batch_size=batch_size,verbose=1)
 

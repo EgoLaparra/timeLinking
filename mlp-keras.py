@@ -13,13 +13,14 @@ Created on Wed Feb 22 22:00:24 2017
 
 @author: egoitz
 """
+
 import sys
+import numpy as np
+np.random.seed(12345)
 from keras.layers import Input, LSTM, TimeDistributed, Dense, Masking, Dropout
 from keras.models import Model
-import numpy as np
 
 import getseqs
-
 
 # LSTM Parameters
 epochs = 10 # Number of epochs to cycle through data
@@ -44,20 +45,23 @@ data_x, data_y, out_class = getseqs.data_to_pair2lab_vector(links, entities, seq
 feat_size = 2 * len(types) + 2 * len(parentsTypes) + 1
 
 
-data_x, data_y = getseqs.balance_data(data_x, data_y, out_class)
+#data_x, data_y = getseqs.balance_data(data_x, data_y, out_class)
 
 # The model
 
 input_layer = Input(shape=(feat_size,), dtype='float32', name="inputs")
-hidden = Dense(100, activation='sigmoid', name="hidden")(input_layer)
-top = Dense(len(linkTypes), activation='softmax', name="top")(hidden)
+hidden1 = Dense(200, activation='relu', name="hidden1")(input_layer)
+hidden2 = Dense(200, activation='relu', name="hidden2")(hidden1)
+hidden3 = Dense(10, activation='relu', name="hidden3")(hidden2)
+top = Dense(len(linkTypes), activation='softmax', name="top")(hidden3)
 model = Model(input=input_layer, output=top)
 model.compile('adadelta', 'categorical_crossentropy', metrics=['accuracy'])
 model.fit(data_x, data_y, batch_size=batch_size, nb_epoch=epochs, validation_split=val_split)
 
 
 # Testing
-links, entities, sequences,  _ = getseqs.getdata(test_path)
+entities, sequences,  _ = getseqs.get_testdata(test_path)
+link=dict()
 data_x, _, _ = getseqs.data_to_pair2lab_vector(links, entities, sequences, max_seq,
                                         types2idx, len(types),
                                         parentsTypes2dx, len(parentsTypes),
