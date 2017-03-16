@@ -30,8 +30,8 @@ learning_rate = 0.001 # Learning rate
 val_split = 0.25
 
 
-train_path = '/home/egoitz//Data/Datasets/Time/SCATE/anafora-annotations/TimeNorm/train_TimeBank/'
-test_path = '/home/egoitz/Data/Datasets/Time/SCATE/anafora-annotations/TimeNorm/test_AQUAINT/'
+train_path = '/Users/laparra/Data/Datasets/Time/SCATE/anafora-annotations/TimeNorm/train_TimeBank/'
+test_path = '/Users/laparra/Data/Datasets/Time/SCATE/anafora-annotations/TimeNorm/test_AQUAINT/'
 out_path = 'out/test/'
 
 links, entities, sequences,  max_seq = getseqs.getdata(train_path)
@@ -48,23 +48,29 @@ data_x, data_y, out_class = getseqs.data_to_seq2seq_single_vector(links, entitie
                                                                   trans2idx, len(transOp))
 feat_size = len(types) + len(parentsTypes)
 
-#for seq in data_y:
+# for seq in data_x:
 #    for prediction in seq:
-#        print prediction
-#        p = np.argmax(prediction)
-#        print p,transOp[p]
-#    print ""
-#sys.exit()
+#        print(prediction)
+#        # p = np.argmax(prediction)
+#        # print(transOp[p])
+#    print("")
+# sys.exit()
 
 
-input_layer = Input(shape=(max_seq,feat_size), dtype='float32')
-mask = (Masking(mask_value=0))(input_layer)
-s2s = Seq2Seq(output_dim=len(transOp),
-                      output_length=max_trans, 
+#input_layer = Input(shape=(max_seq,feat_size), dtype='float32')
+#mask = Masking(mask_value=0)(input_layer)
+#embs = Embedding(1000, 64, input_length=10)(input_layer)
+#s2s = Seq2Seq(output_dim=len(transOp),
+#                      output_length=max_trans,
+#                      input_shape=(max_seq, feat_size),
+#                      depth=4)(mask)
+
+#model = Model(input=input_layer, output=s2s)
+
+model = Seq2Seq(output_dim=len(transOp),
+                      output_length=max_trans,
                       input_shape=(max_seq, feat_size),
-                      depth=2)(mask)
-
-model = Model(input=input_layer, output=s2s)
+                      depth=4)
 
 #input_layer = Input(shape=(max_seq,feat_size), dtype='float32', name="inputs")
 #masked_input = Masking(mask_value=-1)(input_layer)
@@ -76,8 +82,8 @@ model = Model(input=input_layer, output=s2s)
 #model.fit(data_x, data_y, batch_size=batch_size, nb_epoch=epochs, validation_split=val_split)
 
  
-model.compile(loss='categorical_crossentropy', optimizer='adadelta')
-model.fit(data_x, data_y, nb_epoch=10)
+model.compile(loss='mse', optimizer='adadelta')
+model.fit(data_x, data_y, nb_epoch=epochs)
 
 
 entities, sequences,  _ = getseqs.get_testdata(test_path)
@@ -93,5 +99,5 @@ for seq in predictions:
     for prediction in seq:
         p = np.argmax(prediction)
         #print prediction
-        print p,transOp[p]
-    print ""
+        print(p, transOp[p])
+    print("")

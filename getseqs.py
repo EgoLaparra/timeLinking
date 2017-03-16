@@ -324,7 +324,7 @@ def data_to_seq2seq_single_vector(links, entities, seqs, max_seq,
                   
         while len(seq_y) < max_tran_seq:
             padd_y = np.zeros(size_transitions)
-            #padd_y[0] = 1
+            padd_y[0] = 1
             seq_y.append(padd_y)
          
         y.append(np.array(seq_y))
@@ -589,7 +589,7 @@ def get_transitions(links, entities, seqs):
                 else:
                     rsteps.append("RStep") 
             passes.append("Pass")
-        passes.append("Stop")             
+        transition.append("Stop")
 
         if len(transition) > max_trans:
             max_trans = len(transition)
@@ -600,13 +600,16 @@ def get_transitions(links, entities, seqs):
     return entitylists, transitions, newlinks, max_trans, transOp, trans2idx
         
 import re   
-def build_graph(entitylists,transitions):
+def build_graph(entitylists, entities, transitions):
+    outputs = dict()
     for i in range(0, len(transitions)):
         entitylist = entitylists[i]            
         e = 0
         l = e-1
         r = e+1   
         for t in transitions[i]:
+            if e >= len(entitylist):
+                continue
             if t == "Pass":
                 e += 1
                 l = e-1
@@ -616,14 +619,33 @@ def build_graph(entitylists,transitions):
             elif t == "LStep":
                 l -= 1
             elif re.match(r'^L',t):
+                if l < 0:
+                    continue
                 t = re.sub(r'^L','',t)
-                print (entitylist[e][0] + " " + t + " " + entitylist[l][0])
+                target = entitylist[e][0]
+                xmlfile = entities[target][3]
+                if xmlfile not in outputs:
+                    outputs[xmlfile] = dict()
+                targetid = entities[target][4]
+                if targetid not in outputs[xmlfile]:
+                    outputs[xmlfile][targetid] = dict()
+                outputs[xmlfile][targetid][entitylist[l][0]] = [t, 1.]
                 l -= 1
             elif re.match(r'^R',t):
+                if r >= len(entitylist):
+                    continue
                 t = re.sub(r'^R','',t)
-                print (entitylist[e][0] + " " + t + " " + entitylist[r][0])
+                target = entitylist[e][0]
+                xmlfile = entities[target][3]
+                if xmlfile not in outputs:
+                    outputs[xmlfile] = dict()
+                targetid = entities[target][4]
+                if targetid not in outputs[xmlfile]:
+                    outputs[xmlfile][targetid] = dict()
+                outputs[xmlfile][targetid][entitylist[r][0]] = [t, 1.]
                 r += 1
-        print ("")
+    return outputs
+
 #train_path = '/home/egoitz//Data/Datasets/Time/SCATE/anafora-annotations/TimeNorm/train_TimeBank/'
 
 #links, entities, sequences,  max_seq = getdata(train_path)
