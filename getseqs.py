@@ -332,6 +332,70 @@ def data_to_seq2seq_single_vector(links, entities, seqs, max_seq,
     return np.array(x), np.array(y), out_class
 
     
+def data_to_seq2graph(links, entities, seqs, max_seq,
+                   types_to_idx, size_types, 
+                   parentsTypes_to_idx, size_parentTypes,
+                   linkTypes_to_idx, size_linkTypes):
+
+    x = list()
+    y = list()
+    out_class = list()
+    for key in seqs.keys():
+        seq_x = list()
+        seq_y = list()
+        for target in sorted(seqs[key]):
+            ttype = 0
+            if entities[target][1] in types_to_idx.keys():
+                ttype = types_to_idx[entities[target][1]]
+            tparentsType = 0
+            if entities[target][2] in parentsTypes_to_idx:
+                tparentsType = parentsTypes_to_idx[entities[target][2]]
+            ttype_vector = np.zeros(size_types)
+            ttype_vector[ttype] = 1
+            tparentsType_vector = np.zeros(size_parentTypes)
+            tparentsType_vector[tparentsType] = 1
+            seq_x.append(np.concatenate(
+                        (ttype_vector, tparentsType_vector),
+                        axis=0))
+                        
+            target_y = list()
+            for entity in sorted(seqs[key]):
+                lType = -1
+                if target in links.keys() and entity in links[target].keys():
+                    lType = linkTypes_to_idx[links[target][entity]]
+                else:
+                    lType = linkTypes_to_idx['O']
+                    out_class.append(len(y))
+                linkType_vector = np.zeros(size_linkTypes)
+                linkType_vector[lType] = 1
+                target_y.append(linkType_vector)
+            while len(target_y) < max_seq:
+                padd_y = np.empty(size_linkTypes)
+                padd_y.fill(0)
+                target_y.append(padd_y)
+            seq_y.append(target_y)
+
+            
+        feat_size = size_types + size_parentTypes
+        while len(seq_x) < max_seq:
+            padd_x = np.empty(feat_size)
+            padd_x.fill(0)
+            seq_x.append(padd_x)
+    
+        while len(seq_y) < max_seq:
+            target_y = list()
+            while len(target_y) < max_seq:
+                padd_y = np.empty(size_linkTypes)
+                padd_y.fill(0)
+                target_y.append(padd_y)
+            seq_y.append(target_y)                
+        
+        x.append(seq_x)
+        y.append(seq_y)
+            
+    return np.array(x), np.array(y), out_class
+               
+    
 def data_to_seq2lab_vector(links, entities, seqs, max_seq,
                    types_to_idx, size_types, 
                    parentsTypes_to_idx, size_parentTypes,
