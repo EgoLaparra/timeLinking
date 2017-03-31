@@ -7,6 +7,7 @@ Created on Thu Mar 16 22:19:28 2017
 """
 import os
 from lxml import etree
+import re
 
 props = ["AMPM-Of-Day", "End-Interval", "Interval", "Intervals", "Modifier",
          "Number", "Period", "Periods", "Repeating-Interval", "Repeating-Intervals",
@@ -99,12 +100,12 @@ def getdata(path, tmlpath, rawpath):
                     end = entities[e][1]
                     if estart < end and start < eend:
                         both = True
-                        print (e,start,end,"".join(text[start:end]), eid,estart,eend,"".join(text[estart:eend]))
+                        print (e,start,end,re.sub(' ','_',"".join(text[start:end])), eid,estart,eend,re.sub(' ','_',"".join(text[estart:eend])))
                         ents = list(entities[e])
                         ents[-1] = True
                         entities[e] = tuple(ents)
                 if not both:
-                        print ("NotInTML", eid, estart, eend,"".join(text[estart:eend]))
+                        print ("NotInTML", eid, estart, eend,re.sub(' ','_',"".join(text[estart:eend])))
             
             for e in entities:
                 if not entities[e][-1]:
@@ -112,11 +113,18 @@ def getdata(path, tmlpath, rawpath):
                     end = entities[e][1]
                     print (e,start,end,"".join(text[start:end]), "NotinTN")
                         
-train_path = '/home/egoitz//Data/Datasets/Time/SCATE/anafora-annotations/TimeNorm/train_TimeBank/'
-test_path = '/home/egoitz/Data/Datasets/Time/SCATE/anafora-annotations/TimeNorm/test_AQUAINT/'
-train_tmlpath = '/home/egoitz/Data/Datasets/Time/SCATE/anafora-annotations/TempEval-2013-Train/TimeBank/'
-test_tmlpath = '/home/egoitz/Data/Datasets/Time/SCATE/anafora-annotations/TempEval-2013-Train/AQUAINT/'
-rawpath = '/home/egoitz/Data/Datasets/Time/SCATE/anafora-annotations/TimeNorm/raw/'
+# train_path = '/home/egoitz//Data/Datasets/Time/SCATE/anafora-annotations/TimeNorm/train_TimeBank/'
+# test_path = '/home/egoitz/Data/Datasets/Time/SCATE/anafora-annotations/TimeNorm/test_AQUAINT/'
+# train_tmlpath = '/home/egoitz/Data/Datasets/Time/SCATE/anafora-annotations/TempEval-2013-Train/TimeBank/'
+# test_tmlpath = '/home/egoitz/Data/Datasets/Time/SCATE/anafora-annotations/TempEval-2013-Train/AQUAINT/'
+# rawpath = '/home/egoitz/Data/Datasets/Time/SCATE/anafora-annotations/TimeNorm/raw/'
+
+train_path = '/Users/laparra//Data/Datasets/Time/SCATE/anafora-annotations/TimeNorm/train_TimeBank/'
+test_path = '/Users/laparra/Data/Datasets/Time/SCATE/anafora-annotations/TimeNorm/test_AQUAINT/'
+train_tmlpath = '/Users/laparra/Data/Datasets/Time/SCATE/anafora-annotations/TempEval-2013-Train/TimeBank/'
+test_tmlpath = '/Users/laparra/Data/Datasets/Time/SCATE/anafora-annotations/TempEval-2013-Train/AQUAINT/'
+rawpath = '/Users/laparra/Data/Datasets/Time/SCATE/anafora-annotations/TimeNorm/raw/'
+
 
 getdata(train_path, train_tmlpath, rawpath)
 #getdata(test_path, test_tmlpath, rawpath)

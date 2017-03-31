@@ -275,6 +275,55 @@ def data_to_seq2seq_vector(links, entities, seqs, max_seq,
     return np.array(x), np.array(y), out_class
 
 
+
+def data_to_seq2seq(links, entities, seqs, max_seq,
+                                  transitions, max_tran_seq,
+                                  types_to_idx, size_types,
+                                  parentsTypes_to_idx, size_parentTypes,
+                                  tran_to_idx, size_transitions):
+    x = list()
+    y = list()
+    out_class = list()
+    for key in seqs.keys():
+        seq_x = list()
+        for entity in sorted(seqs[key]):
+
+            etype = 0
+            if entities[entity][1] in types_to_idx.keys():
+                etype = types_to_idx[entities[entity][1]]
+            eparentsType = 0
+            if entities[entity][2] in parentsTypes_to_idx.keys():
+                eparentsType = parentsTypes_to_idx[entities[entity][2]]
+
+            seq_x.append(etype)
+
+        feat_size = size_types
+        while len(seq_x) < max_seq:
+            seq_x.append(-1)
+
+        x.append(np.array(seq_x))
+
+    for transition_seq in transitions:
+        seq_y = list()
+        for transition in transition_seq:
+            tranOp = 0
+            if transition in tran_to_idx.keys():
+                tranOp = tran_to_idx[transition]
+
+            tran_vector = np.zeros(size_transitions)
+            tran_vector[tranOp] = 1
+            seq_y.append(tran_vector)
+
+        while len(seq_y) < max_tran_seq:
+            padd_y = np.zeros(size_transitions)
+            padd_y[0] = 1
+            seq_y.append(padd_y)
+
+        y.append(np.array(seq_y))
+
+    return np.array(x), np.array(y), out_class
+
+
 def data_to_seq2seq_single_vector(links, entities, seqs, max_seq,
                                   transitions, max_tran_seq,
                                    types_to_idx, size_types, 
@@ -581,14 +630,14 @@ def print_outputs(test_path, out_path, outputs):
                 for prop in eproperties.findall('./*'):
                     eproperties.remove(prop)
         
-        for target in outputs[xmlfile]:
-            targetProps = axml.xpath('.//entity[id/text()="' + target + '"]/properties')[0]
-            for entity in outputs[xmlfile][target]:
-                link = outputs[xmlfile][target][entity][0]
-                prob = outputs[xmlfile][target][entity][1]
-                l = etree.Element(link)
-                l.text = entity
-                targetProps.append(l)
+            for target in outputs[xmlfile]:
+                targetProps = axml.xpath('.//entity[id/text()="' + target + '"]/properties')[0]
+                for entity in outputs[xmlfile][target]:
+                    link = outputs[xmlfile][target][entity][0]
+                    prob = outputs[xmlfile][target][entity][1]
+                    l = etree.Element(link)
+                    l.text = entity
+                    targetProps.append(l)
         
         if not os.path.exists(out_path + '/' + doc):
             os.makedirs(out_path + '/' + doc)

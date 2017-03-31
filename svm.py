@@ -19,15 +19,11 @@ import numpy as np
 import getseqs
 
 
-# LSTM Parameters
-epochs = 10 # Number of epochs to cycle through data
-batch_size = 100 # Train on this many examples at once
-learning_rate = 0.001 # Learning rate
-val_split = 0.25
-
 # Get and process data
-train_path = '/home/egoitz//Data/Datasets/Time/SCATE/anafora-annotations/TimeNorm/train_TimeBank/'
-test_path = '/home/egoitz/Data/Datasets/Time/SCATE/anafora-annotations/TimeNorm/test_AQUAINT/'
+#train_path = '/home/egoitz//Data/Datasets/Time/SCATE/anafora-annotations/TimeNorm/train_TimeBank/'
+#test_path = '/home/egoitz/Data/Datasets/Time/SCATE/anafora-annotations/TimeNorm/test_AQUAINT/'
+train_path = '/Users/laparra//Data/Datasets/Time/SCATE/anafora-annotations/TimeNorm/train_TimeBank/'
+test_path = '/Users/laparra/Data/Datasets/Time/SCATE/anafora-annotations/TimeNorm/test_AQUAINT/'
 out_path = 'out/test/'
 
 links, entities, sequences,  max_seq = getseqs.getdata(train_path)
@@ -41,12 +37,8 @@ data_x, data_y, out_class = getseqs.data_to_pair2lab_vector(links, entities, seq
                                         linkTypes2idx, len(linkTypes),
                                         one_hot_labels=False)
 
-#data_x, data_y = getseqs.balance_data(data_x, data_y, out_class)
-#class_weights = getseqs.weight_classes(linkTypes)
 
 # The model
-#svc = svm.SVC(class_weight=class_weights)
-#svc = svm.SVC(class_weight='balanced')
 svc = svm.SVC(probability=True)
 svc.fit(data_x, data_y)
 
@@ -59,13 +51,11 @@ data_x, _, _ = getseqs.data_to_pair2lab_vector(links, entities, sequences, max_s
                                         parentsTypes2dx, len(parentsTypes),
                                         linkTypes2idx, len(linkTypes))
 
-#predictions = svc.predict(data_x)
 predictions = svc.predict_log_proba(data_x)
 labels = list()
 for p in predictions:
-    #labels.append((linkTypes[p],0))
     i = np.argmax(p)
-    labels.append((linkTypes[i],p[i]))
+    labels.append((linkTypes[i], p[i]))
     
 outputs = dict()
 l = 0
@@ -83,4 +73,4 @@ for key in sequences.keys():
                     outputs[xmlfile][targetid][entities[entity][4]] = labels[l]
                 l += 1
 
-getseqs.print_outputs(test_path,out_path, outputs)
+getseqs.print_outputs(test_path, out_path, outputs)

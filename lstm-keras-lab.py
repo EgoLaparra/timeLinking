@@ -16,7 +16,7 @@ Created on Wed Feb 22 22:00:24 2017
 import sys
 import numpy as np
 np.random.seed(55555)
-from keras.layers import Input, LSTM, GRU, TimeDistributed, Dense, Masking, Dropout
+from keras.layers import Input, LSTM, GRU, TimeDistributed, Dense, Masking, Dropout, Bidirectional
 from keras.models import Model
 
 import getseqs
@@ -29,8 +29,10 @@ learning_rate = 0.001 # Learning rate
 val_split = 0.25
 
 # Get and process data
-train_path = '/home/egoitz//Data/Datasets/Time/SCATE/anafora-annotations/TimeNorm/train_TimeBank/'
-test_path = '/home/egoitz/Data/Datasets/Time/SCATE/anafora-annotations/TimeNorm/test_AQUAINT/'
+# train_path = '/home/egoitz//Data/Datasets/Time/SCATE/anafora-annotations/TimeNorm/train_TimeBank/'
+# test_path = '/home/egoitz/Data/Datasets/Time/SCATE/anafora-annotations/TimeNorm/test_AQUAINT/'
+train_path = '/Users/laparra//Data/Datasets/Time/SCATE/anafora-annotations/TimeNorm/train_TimeBank/'
+test_path = '/Users/laparra/Data/Datasets/Time/SCATE/anafora-annotations/TimeNorm/test_AQUAINT/'
 out_path = 'out/test/'
 
 links, entities, sequences,  max_seq = getseqs.getdata(train_path)
@@ -44,8 +46,8 @@ data_x, data_y, out_class = getseqs.data_to_seq2lab_vector(links, entities, sequ
                                                            linkTypes2idx, len(linkTypes))
 feat_size = 3 * len(types) + 3 * len(parentsTypes)
 
-print np.shape(data_x)
-print np.shape(data_y)
+print (np.shape(data_x))
+print (np.shape(data_y))
 
 #data_x, data_y = getseqs.balance_data(data_x, data_y, out_class)
 
@@ -53,8 +55,8 @@ print np.shape(data_y)
 input_layer = Input(shape=(max_seq,feat_size), dtype='float32', name="inputs")
 masked_input = Masking(mask_value=0)(input_layer)
 dropout = Dropout(0.3,name="droput")(masked_input)
-lstm = GRU(100, name="lstm")(dropout)
-#dropout = Dropout(0.3,name="droput")(lstm)
+lstm = Bidirectional(GRU(100, name="lstm"),merge_mode="concat")(dropout)
+dropout = Dropout(0.3,name="droput")(lstm)
 hidden1 = Dense(200, activation='relu', name="hidden1")(lstm)
 hidden2 = Dense(200, activation='relu', name="hidden2")(lstm)
 top = Dense(len(linkTypes), activation='softmax', name="top")(hidden2)
@@ -72,7 +74,7 @@ data_x, _, _ = getseqs.data_to_seq2lab_vector(links, entities, sequences, max_se
                                               linkTypes2idx, len(linkTypes))
 
 
-print np.shape(data_x)
+print (np.shape(data_x))
 
 predictions = model.predict(data_x,batch_size=batch_size,verbose=1)
 
