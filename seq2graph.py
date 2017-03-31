@@ -27,9 +27,9 @@ def Adjancency(x):
     m = K.tile(x, (1,1,x_shape[1]))
     m = K.reshape(m, (x_shape[0], x_shape[1], x_shape[1], x_shape[2]))
     m_T = K.permute_dimensions(m,(0,2,1,3))
-    sum = m + m_T
+    sum = K.concatenate([m, m_T], axis=2)
     sum = K.flatten(sum)
-    sum = K.reshape(sum, (x_shape[0], x_shape[1] * x_shape[1], x_shape[2]))
+    sum = K.reshape(sum, (x_shape[0], x_shape[1] * x_shape[1], x_shape[2]*2))
     return sum
 
 # LSTM Parameters
@@ -39,10 +39,10 @@ learning_rate = 0.001 # Learning rate
 val_split = 0.25
 
 # Get and process data
-# train_path = '/home/egoitz//Data/Datasets/Time/SCATE/anafora-annotations/TimeNorm/train_TimeBank/'
-# test_path = '/home/egoitz/Data/Datasets/Time/SCATE/anafora-annotations/TimeNorm/test_AQUAINT/'
-train_path = '/Users/laparra//Data/Datasets/Time/SCATE/anafora-annotations/TimeNorm/train_TimeBank/'
-test_path = '/Users/laparra/Data/Datasets/Time/SCATE/anafora-annotations/TimeNorm/test_AQUAINT/'
+train_path = '/home/egoitz//Data/Datasets/Time/SCATE/anafora-annotations/TimeNorm/train_TimeBank/'
+test_path = '/home/egoitz/Data/Datasets/Time/SCATE/anafora-annotations/TimeNorm/test_AQUAINT/'
+#train_path = '/Users/laparra//Data/Datasets/Time/SCATE/anafora-annotations/TimeNorm/train_TimeBank/'
+#test_path = '/Users/laparra/Data/Datasets/Time/SCATE/anafora-annotations/TimeNorm/test_AQUAINT/'
 out_path = 'out/test/'
 
 
@@ -65,9 +65,10 @@ data_y = np.reshape(data_y.flatten(),(y_shape[0],y_shape[1]*y_shape[2],y_shape[3
 
 # The model
 input_layer = Input(shape=(max_seq,feat_size), dtype='float32', name="inputs")
+#masked = Masking()(input_layer)
 dropout = Dropout(0.3,name="droput")(input_layer)
 gru = Bidirectional(GRU(100, name="rnn",return_sequences=True), merge_mode='concat')(dropout)
-adjacency = Lambda(Adjancency, output_shape=(max_seq*max_seq, 200))(gru)
+adjacency = Lambda(Adjancency, output_shape=(max_seq*max_seq, 400))(gru)
 hidden1 = TimeDistributed(Dense(200, activation='relu', name="hidden1"))(adjacency)
 hidden2 = TimeDistributed(Dense(200, activation='relu', name="hidden2"))(hidden1)
 top = TimeDistributed(Dense(len(linkTypes), activation='softmax', name="top"))(hidden2)
@@ -94,6 +95,7 @@ labels = list()
 for seq in predictions:
     for tag in seq:
         i = np.argmax(tag)
+        print (linkTypes[i])
         labels.append((linkTypes[i],0))
                 
 outputs = dict()
