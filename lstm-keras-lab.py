@@ -15,9 +15,11 @@ Created on Wed Feb 22 22:00:24 2017
 """
 import sys
 import numpy as np
-np.random.seed(55555)
+np.random.seed(12345)
+from keras import initializations
 from keras.layers import Input, LSTM, GRU, TimeDistributed, Dense, Masking, Dropout, Bidirectional
 from keras.models import Model
+import math
 
 import getseqs
 
@@ -49,20 +51,17 @@ feat_size = 3 * len(types) + 3 * len(parentsTypes)
 print (np.shape(data_x))
 print (np.shape(data_y))
 
-#data_x, data_y = getseqs.balance_data(data_x, data_y, out_class)
-
 # The model
 input_layer = Input(shape=(max_seq,feat_size), dtype='float32', name="inputs")
 masked_input = Masking(mask_value=0)(input_layer)
-dropout = Dropout(0.3,name="droput")(masked_input)
-lstm = Bidirectional(GRU(100, name="lstm"),merge_mode="concat")(dropout)
-dropout = Dropout(0.3,name="droput")(lstm)
-hidden1 = Dense(200, activation='relu', name="hidden1")(lstm)
-hidden2 = Dense(200, activation='relu', name="hidden2")(lstm)
-top = Dense(len(linkTypes), activation='softmax', name="top")(hidden2)
+gru = Bidirectional(GRU(100, name="gru"), merge_mode="concat")(masked_input)
+hidden1 = Dense(200, activation='relu', name="hidden1")(gru)
+hidden2 = Dense(200, activation='relu', name="hidden2")(hidden1)
+hidden3 = Dense(10, activation='relu', name="hidden3")(hidden2)
+top = Dense(len(linkTypes), activation='softmax', name="top")(hidden3)
 model = Model(input=input_layer, output=top)
 model.compile('adadelta', 'categorical_crossentropy', metrics=['accuracy'])
-model.fit(data_x, data_y, batch_size=batch_size, nb_epoch=epochs, validation_split=val_split)
+model.fit(data_x, data_y, batch_size=batch_size, nb_epoch=epochs)#, validation_split=val_split)
 
 
 # Testing

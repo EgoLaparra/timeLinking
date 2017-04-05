@@ -29,8 +29,10 @@ learning_rate = 0.001 # Learning rate
 val_split = 0.25
 
 # Get and process data
-train_path = '/home/egoitz//Data/Datasets/Time/SCATE/anafora-annotations/TimeNorm/train_TimeBank/'
-test_path = '/home/egoitz/Data/Datasets/Time/SCATE/anafora-annotations/TimeNorm/test_AQUAINT/'
+# train_path = '/home/egoitz//Data/Datasets/Time/SCATE/anafora-annotations/TimeNorm/train_TimeBank/'
+# test_path = '/home/egoitz/Data/Datasets/Time/SCATE/anafora-annotations/TimeNorm/test_AQUAINT/'
+train_path = '/Users/laparra//Data/Datasets/Time/SCATE/anafora-annotations/TimeNorm/train_TimeBank/'
+test_path = '/Users/laparra/Data/Datasets/Time/SCATE/anafora-annotations/TimeNorm/test_AQUAINT/'
 out_path = 'out/test/'
 
 links, entities, sequences,  max_seq = getseqs.getdata(train_path)
@@ -56,7 +58,7 @@ hidden3 = Dense(10, activation='relu', name="hidden3")(hidden2)
 top = Dense(len(linkTypes), activation='softmax', name="top")(hidden3)
 model = Model(input=input_layer, output=top)
 model.compile('adadelta', 'categorical_crossentropy', metrics=['accuracy'])
-model.fit(data_x, data_y, batch_size=batch_size, nb_epoch=epochs, validation_split=val_split)
+model.fit(data_x, data_y, batch_size=batch_size, nb_epoch=epochs)#, validation_split=val_split)
 
 
 # Testing
