@@ -44,12 +44,28 @@ class Net(nn.Module):
 
     def forward(self, input, hidden):
         output, _ = self.gru(input, hidden)
-        output = self.relu1(self.hlayer1(output[-1, :, :]))
+        output = self.adjacency(output)
+        output = self.relu1(self.hlayer1(output))
         output = self.relu2(self.hlayer2(output))
         output = self.relu3(self.hlayer3(output))
         output = self.softmax(self.top(output))
         return output
 
+    def adjacency(self, input):
+        input = torch.transpose(input, 0, 1)
+        print (input.data.size())
+        input = input.data.numpy()
+        shp = np.shape(input)
+        input = np.tile(input, (1,1,shp[1]))
+        input = np.reshape(input, (shp[0], shp[1], shp[1], shp[2]))
+        input_T = np.transpose(input,(0,2,1,3))
+        adj = np.concatenate([input, input_T], axis=2)
+        adj.flatten()
+        adj = np.reshape(adj, (shp[0], shp[1] * shp[1], shp[2]*2))
+        adj = torch.from_numpy(adj)
+        adj = torch.transpose(adj, 0, 1)
+        return adj
+        
     def init_h0(self, N):
         return Variable(torch.randn(1, N, self.hidden_size))
 
@@ -103,11 +119,11 @@ max_seq = 10
 (types, types2idx,
  parentsTypes, parentsTypes2dx,
  linkTypes, linkTypes2idx) = getseqs.build_vocabs(links, entities, sequences)
-data_x, data_y, out_class = getseqs.data_to_seq2lab_vector(links, entities, sequences, max_seq,
+data_x, data_y, out_class = getseqs.data_to_seq2graph(links, entities, sequences, max_seq,
                                                            types2idx, len(types),
                                                            parentsTypes2dx, len(parentsTypes),
                                                            linkTypes2idx, len(linkTypes))
-feat_size = 3 * len(types) + 3 * len(parentsTypes)
+feat_size = len(types) + len(parentsTypes)
 
 print ('Train x shape:', np.shape(data_x))
 print ('Test y shape:', np.shape(data_y))

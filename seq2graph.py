@@ -16,9 +16,12 @@ Created on Wed Feb 22 22:00:24 2017
 import sys
 import numpy as np
 np.random.seed(55555)
-from keras.layers import Input, LSTM, GRU, TimeDistributed, Dense, Masking, Dropout, Bidirectional, Lambda, Flatten, Reshape
+from keras.layers import Lambda
+from keras.layers import Input, LSTM, GRU, TimeDistributed, Dense, Masking, Dropout, Bidirectional, Flatten, Reshape
 from keras.models import Model
 from keras.layers.core import K
+
+#from lambdawithmask import Lambda
 
 import getseqs
 
@@ -27,10 +30,10 @@ def Adjancency(x):
     m = K.tile(x, (1,1,x_shape[1]))
     m = K.reshape(m, (x_shape[0], x_shape[1], x_shape[1], x_shape[2]))
     m_T = K.permute_dimensions(m,(0,2,1,3))
-    sum = K.concatenate([m, m_T], axis=2)
-    sum = K.flatten(sum)
-    sum = K.reshape(sum, (x_shape[0], x_shape[1] * x_shape[1], x_shape[2]*2))
-    return sum
+    adj = K.concatenate([m, m_T], axis=2)
+    adj = K.flatten(adj)
+    adj = K.reshape(adj, (x_shape[0], x_shape[1] * x_shape[1], x_shape[2]*2))
+    return adj
 
 # LSTM Parameters
 epochs = 10 # Number of epochs to cycle through data
@@ -65,18 +68,18 @@ data_y = np.reshape(data_y.flatten(),(y_shape[0],y_shape[1]*y_shape[2],y_shape[3
 
 # The model
 input_layer = Input(shape=(max_seq,feat_size), dtype='float32', name="inputs")
-#masked = Masking()(input_layer)
-dropout = Dropout(0.3,name="droput")(input_layer)
+masked = Masking(mask_value=0.0)(input_layer)
+dropout = Dropout(0.3,name="droput")(masked)
 gru = Bidirectional(GRU(100, name="rnn",return_sequences=True), merge_mode='concat')(dropout)
 adjacency = Lambda(Adjancency, output_shape=(max_seq*max_seq, 400))(gru)
 hidden1 = TimeDistributed(Dense(200, activation='relu', name="hidden1"))(adjacency)
 hidden2 = TimeDistributed(Dense(200, activation='relu', name="hidden2"))(hidden1)
-top = TimeDistributed(Dense(len(linkTypes), activation='softmax', name="top"))(hidden2)
-model = Model(input=input_layer, output=top)
+hidden3 = TimeDistributed(Dense(10, activation='relu', name="hidden2"))(hidden2)
+top = TimeDistributed(Dense(len(linkTypes), activation='softmax', name="top"))(hidden3)
+model = Model(inputs=input_layer, outputs=top)
 model.compile('adadelta', 'categorical_crossentropy', metrics=['accuracy'])
 
 model.fit(data_x, data_y, batch_size=batch_size, nb_epoch=epochs, validation_split=val_split)
-
 
 # Testing
 entities, sequences,  _ = getseqs.get_testdata(test_path)
