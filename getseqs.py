@@ -10,13 +10,14 @@ from lxml import etree
 import os
 import numpy as np
 
+import anafora
+
 props = ["AMPM-Of-Day", "End-Interval", "Interval", "Intervals", "Modifier",
          "Number", "Period", "Periods", "Repeating-Interval", "Repeating-Intervals",
          "Start-Interval", "Sub-Interval", "Time-Zone"]
 
 cond = "[" + " or ".join(["self::%s" % p for p in props]) + "]"
 
-         
 def getseq(seqs, node):
     seqkey = None
     for key in seqs.keys():
@@ -770,27 +771,18 @@ def get_transitions_typereduce(links, entities, seqs):
     trans2idx["Shift"] = 1
     max_trans = 0
     for key in seqs.keys():
-        print (key)
-        arcs = list()
         transition = list()
         stack = dict()
         stack_roots = list()
-        queue = list()
         entitylist = list()
         for entity in seqs[key]:
             begin = entities[entity][0].split(',')[0]
             entitylist.append((entity, int(begin)))
         entitylist = sorted(entitylist, key=lambda x: x[1])
-        queue = entitylist
+        queue = list()
+        queue.extend(entitylist)
         queue.reverse()
         
-        for q in queue:
-            q = q[0]
-            print (q)
-            if q in links:
-                for r in links[q]:
-                    print ('\t',r,links[q][r])
-                
         while len(queue) > 0 or len(stack_roots) > 1:
             if len(stack_roots) <= 1:
                 q = queue.pop()[0]
@@ -801,7 +793,6 @@ def get_transitions_typereduce(links, entities, seqs):
                 remain_roots = list()
                 while len(stack_roots) > 1:
                     r = stack_roots.pop()
-                    print (' R ', r, stack_roots)
                     t = ""
                     stack_pointer = list()
                     stack_pointer.extend(stack_roots)
@@ -822,7 +813,6 @@ def get_transitions_typereduce(links, entities, seqs):
                             stack_pointer.reverse()
                             stack_pointer.extend(stack[s])
                             stack_pointer.reverse()
-                    print (t)
                     if t == "":
                         remain_roots.append(r)
                         if len(queue) > 0:
@@ -836,9 +826,8 @@ def get_transitions_typereduce(links, entities, seqs):
                                 transOp.append(t)
                         transition.append(t)
                 stack_roots = remain_roots
-        print (stack)
-        print (stack_roots)
-        print (transition)
+
+        transition.append("Stop")
         if len(transition) > max_trans:
             max_trans = len(transition)
         transitions.append(transition)
@@ -846,12 +835,99 @@ def get_transitions_typereduce(links, entities, seqs):
         newlinks.append(links)
 
     return entitylists, transitions, newlinks, max_trans, transOp, trans2idx
-    
-train_path = '/home/egoitz//Data/Datasets/Time/SCATE/anafora-annotations/TimeNorm/train_TimeBank/'
+
+def compatible(tnschema, parent, child, relation):
+
+    iscompatible = False
+    validchilds = list()
+    if parent[1] in tnschema:
+        if relation in tnschema[parent[1]]:
+            validchilds = tnschema[parent[1]][relation][1]
+    if child[1] in validchilds:
+        iscompatible = True
+    return iscompatible
+
+
+def build_graph_typereduce(entitylists, entities, transitions):
+
+    tnschema = anafora.get_schema()
+    outputs = dict()
+    for i in range(0, len(transitions)):
+        entitylist = entitylists[i]
+        queue = entitylist
+        queue.reverse()
+        stack = dict()
+        stack_roots = list()
+        for t in transitions[i]:
+            if t == "Shift" and len(queue) > 0:
+                q = queue.pop()[0]
+                stack[q] = list()
+                stack_roots.append(q)
+            elif re.match(r'^TypeReduce2',t):
+                t = re.sub(r'^TypeReduce2-','',t)
+                entity = stack_roots.pop()
+                xmlfile = entities[entity][3]
+                if xmlfile not in outputs:
+                    outputs[xmlfile] = dict()
+                stack_pointer = list()
+                stack_pointer.append(entity)
+                stack_pointer.reverse()
+                found = False
+                while len(stack_pointer) > 0:
+                    s = stack_pointer.pop()
+                    for r in stack_roots:
+                        if compatible(tnschema, entities[s], entities[r], t):
+                            if s not in outputs[xmlfile]:
+                                outputs[xmlfile][s] = dict()
+                            outputs[xmlfile][s][r] = [t, 1.]
+                            stack[s].append(r)
+                            stack_pointer = []
+                            found = True
+                            continue
+                if not found:
+                    stack_pointer.reverse()
+                    stack_pointer.extend(stack[s])
+                    stack_pointer.reverse()
+
+            elif re.match(r'^TypeReduce1',t):
+                t = re.sub(r'^TypeReduce1-','',t)
+                entity = stack_roots.pop()
+                xmlfile = entities[entity][3]
+                if xmlfile not in outputs:
+                    outputs[xmlfile] = dict()
+                stack_pointer = list()
+                stack_pointer.extend(stack_roots)
+                stack_pointer.reverse()
+                while len(stack_pointer) > 0:
+                    s = stack_pointer.pop()
+                    if compatible(tnschema, entities[s],entities[entity],t):
+                        if s not in outputs[xmlfile]:
+                            outputs[xmlfile][s] = dict()
+                        outputs[xmlfile][s][entity] = [t, 1.]
+                        stack[s].append(entity)
+                        stack_pointer = []
+                    else:
+                        stack_pointer.reverse()
+                        stack_pointer.extend(stack[s])
+                        stack_pointer.reverse()
+
+    return outputs
+
+# train_path = '/home/egoitz//Data/Datasets/Time/SCATE/anafora-annotations/TimeNorm/train_TimeBank/'
+train_path = '/Users/laparra//Data/Datasets/Time/SCATE/anafora-annotations/TimeNorm/train_TimeBank/'
 
 links, entities, sequences,  max_seq = getdata(train_path)
 ent,tran,nl,mt,to,ti = get_transitions_typereduce(links,entities,sequences)
-for t in tran:
-    print (t)
+# for t in tran:
+#     print (t)
 #ent,tran,nl = get_transitions(links,entities,sequences)
-#build_graph(ent,tran,nl)
+outputs = build_graph_typereduce(ent,entities,tran)
+
+# for r in links:
+#     for e in links[r]:
+#         print ("D",r,e,links[r][e])
+#
+# for f in outputs:
+#     for t in outputs[f]:
+#         for e in outputs[f][t]:
+#             print ("T",t,e,outputs[f][t][e][0])
