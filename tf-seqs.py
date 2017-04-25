@@ -10,10 +10,10 @@ out_path = 'out/test/'
 
 if sys.argv[1] == "t":
     links, entities, sequences,  max_seq = getseqs.getdata(train_path)
-    # (entitylists, transitions, newlinks,
-    #  max_trans,transOp, trans2idx) = getseqs.get_transitions(links, entities, sequences)
     (entitylists, transitions, newlinks,
-     max_trans,transOp, trans2idx) = getseqs.get_transitions_typereduce(links, entities, sequences)
+        max_trans,transOp, trans2idx) = getseqs.get_transitions(links, entities, sequences)
+    # (entitylists, transitions, newlinks,
+    #  max_trans,transOp, trans2idx) = getseqs.get_transitions_typereduce(links, entities, sequences)
 
     in_vocab = set()
     out_vocab = set()
@@ -42,7 +42,9 @@ if sys.argv[1] == "t":
     
     links, entities, sequences,  max_seq = getseqs.getdata(test_path)
     (entitylists, transitions, newlinks,
-     max_trans,transOp, trans2idx) = getseqs.get_transitions_typereduce(links, entities, sequences)
+     max_trans,transOp, trans2idx) = getseqs.get_transitions(links, entities, sequences)
+    # (entitylists, transitions, newlinks,
+    #  max_trans,transOp, trans2idx) = getseqs.get_transitions_typereduce(links, entities, sequences)
     
     f = open(sys.argv[2] + '/test-input','w')
     m = open(sys.argv[2] + '/map','w')
@@ -59,10 +61,10 @@ if sys.argv[1] == "t":
         
 elif sys.argv[1] == "p":
     links, entities, sequences,  max_seq = getseqs.getdata(test_path)
-    # (entitylists, transitions, newlinks,
-    #  max_trans,transOp, trans2idx) = getseqs.get_transitions(links, entities, sequences)
     (entitylists, transitions, newlinks,
-     max_trans,transOp, trans2idx) = getseqs.get_transitions_typereduce(links, entities, sequences)
+     max_trans,transOp, trans2idx) = getseqs.get_transitions(links, entities, sequences)
+    # (entitylists, transitions, newlinks,
+    #  max_trans,transOp, trans2idx) = getseqs.get_transitions_typereduce(links, entities, sequences)
 
     transitions = list()
     tfs2spredictions = open(sys.argv[2], 'r')
@@ -82,7 +84,8 @@ elif sys.argv[1] == "p":
         entitylist = sorted(entitylist, key=lambda x: x[1])
         entitylists.append(entitylist)
     m.close()
-    
-    outputs = getseqs.build_graph_typereduce(entitylists, entities, transitions)
+
+    outputs = getseqs.build_graph(entitylists, entities, transitions)
+    #outputs = getseqs.build_graph_typereduce(entitylists, entities, transitions)
     
     getseqs.print_outputs(test_path,out_path, outputs)
