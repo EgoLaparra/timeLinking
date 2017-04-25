@@ -27,64 +27,66 @@ test_path = '/Users/laparra/Data/Datasets/Time/SCATE/anafora-annotations/TimeNor
 train_out = 'out/train'
 test_out = 'out/test'
 
-path = train_path
-out_path = train_out
+path = test_path
+out_path = test_out
 
 tnschema = anafora.get_schema()
 
-# props = ["AMPM-Of-Day", "End-Interval", "Interval", "Intervals", "Modifier",
-#          "Number", "Period", "Periods", "Repeating-Interval", "Repeating-Intervals",
-#          "Start-Interval", "Sub-Interval", "Time-Zone"]
-#
-# cond = " or ".join(["self::%s" % p for p in props])
 
 for doc in os.listdir(path):
     for xmlfile in os.listdir(path + '/' + doc):
         axml = etree.parse(path + '/' + doc + '/' + xmlfile)
-        links = dict()
-        stack = list()
-        entity_list = dict()
-        lend = -1
+
+        entities = dict()
         for entity in axml.findall('.//entity'):
             eid = entity.find('./id').text
             estart, eend = entity.find('./span').text.split(',')
             estart, eend = int(estart), int(eend)
-
-            if estart - lend > 10 and lend > -1:
-                stack = list()
-                entity_list = dict()
-            lend = eend
-
             etype = entity.find('./type').text
             eparentsType = entity.find('./parentsType').text
-            entity_list[eid] = (estart, eend, etype, eparentsType)
             eproperties = entity.find('./properties')
             # Empty all links
             for prop in eproperties.findall('./*'):
                 eproperties.remove(prop)
+            if estart not in entities:
+                entities[estart] = list()
+            ent_values = (eid, estart, eend, etype, eparentsType)
+            entities[estart].append(ent_values)
 
-            ltype = ""
-            stack_pointer = list()
-            stack_pointer.extend(stack)
-            while len(stack_pointer) > 0 and ltype == "":
-                s = stack_pointer.pop()
-                stype = entity_list[s][2]
-                ltype = get_relation(tnschema, etype, stype)
-                if ltype != '':
-                    if eid not in links:
-                        links[eid] = dict()
-                    if ltype not in links[eid]:
-                        links[eid][ltype] = list()
-                    links[eid][ltype].append(s)
-                else:
-                    ltype = get_relation(tnschema, stype, etype)
+        links = dict()
+        stack = list()
+        entity_list = dict()
+        lend = -1
+        for start in sorted(entities):
+            for entity in entities[start]:
+                (eid, estart, eend, etype, eparentsType) = entity
+                if estart - lend > 10 and lend > -1:
+                    stack = list()
+                    entity_list = dict()
+                lend = eend
+                entity_list[eid] = (estart, eend, etype, eparentsType)
+                ltype = ""
+                stack_pointer = list()
+                stack_pointer.extend(stack)
+                while len(stack_pointer) > 0:
+                    s = stack_pointer.pop()
+                    stype = entity_list[s][2]
+                    ltype = get_relation(tnschema, etype, stype)
                     if ltype != '':
-                        if s not in links:
-                            links[s] = dict()
-                        if ltype not in links[s]:
-                            links[s][ltype] = list()
-                        links[s][ltype].append(eid)
-            stack.append(eid)
+                        if eid not in links:
+                            links[eid] = dict()
+                        if ltype not in links[eid]:
+                            links[eid][ltype] = list()
+                            links[eid][ltype].append(s)
+                    else:
+                        ltype = get_relation(tnschema, stype, etype)
+                        if ltype != '':
+                            if s not in links:
+                                links[s] = dict()
+                            if ltype not in links[s]:
+                                links[s][ltype] = list()
+                                links[s][ltype].append(eid)
+                stack.append(eid)
 
 
 
