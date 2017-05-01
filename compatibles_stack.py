@@ -20,6 +20,7 @@ def get_relation(tnschema, parent, child):
                     return relation
     return ""
 
+rawpath = '/Users/laparra/Data/Datasets/Time/SCATE/anafora-annotations/TimeNorm/raw/'
 #train_path = '/home/egoitz//Data/Datasets/Time/SCATE/anafora-annotations/TimeNorm/train_TimeBank/'
 #test_path = '/home/egoitz/Data/Datasets/Time/SCATE/anafora-annotations/TimeNorm/test_AQUAINT/'
 train_path = '/Users/laparra//Data/Datasets/Time/SCATE/anafora-annotations/TimeNorm/train_TimeBank/'
@@ -27,15 +28,19 @@ test_path = '/Users/laparra/Data/Datasets/Time/SCATE/anafora-annotations/TimeNor
 train_out = 'out/train'
 test_out = 'out/test'
 
-path = test_path
-out_path = test_out
+path = train_path
+out_path = train_out
 
 tnschema = anafora.get_schema()
 
-
+import re
+import sys
 for doc in os.listdir(path):
     for xmlfile in os.listdir(path + '/' + doc):
         axml = etree.parse(path + '/' + doc + '/' + xmlfile)
+        rawfile = open(rawpath + '/' + doc, 'r')
+        text = rawfile.read()
+        rawfile.close()
 
         entities = dict()
         for entity in axml.findall('.//entity'):
@@ -52,6 +57,13 @@ for doc in os.listdir(path):
                 entities[estart] = list()
             ent_values = (eid, estart, eend, etype, eparentsType)
             entities[estart].append(ent_values)
+
+        if re.search('PRI19980205.2000.1998',doc):
+            for s in sorted(entities):
+                for e in entities[s]:
+                    end = e[2]
+                    print (e, re.sub(' ', '_', "".join(text[s:end])))
+
 
         links = dict()
         stack = list()
