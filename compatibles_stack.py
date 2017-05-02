@@ -20,18 +20,24 @@ def get_relation(tnschema, parent, child):
                     return relation
     return ""
 
-rawpath = '/Users/laparra/Data/Datasets/Time/SCATE/anafora-annotations/TimeNorm/raw/'
-#train_path = '/home/egoitz//Data/Datasets/Time/SCATE/anafora-annotations/TimeNorm/train_TimeBank/'
-#test_path = '/home/egoitz/Data/Datasets/Time/SCATE/anafora-annotations/TimeNorm/test_AQUAINT/'
-train_path = '/Users/laparra//Data/Datasets/Time/SCATE/anafora-annotations/TimeNorm/train_TimeBank/'
-test_path = '/Users/laparra/Data/Datasets/Time/SCATE/anafora-annotations/TimeNorm/test_AQUAINT/'
+rawpath = '/home/egoitz/Data/Datasets/Time/SCATE/anafora-annotations/TimeNorm/raw/'
+train_path = '/home/egoitz//Data/Datasets/Time/SCATE/anafora-annotations/TimeNorm/train_TimeBank/'
+test_path = '/home/egoitz/Data/Datasets/Time/SCATE/anafora-annotations/TimeNorm/test_AQUAINT/'
+#rawpath = '/Users/laparra/Data/Datasets/Time/SCATE/anafora-annotations/TimeNorm/raw/'
+#train_path = '/Users/laparra//Data/Datasets/Time/SCATE/anafora-annotations/TimeNorm/train_TimeBank/'
+#test_path = '/Users/laparra/Data/Datasets/Time/SCATE/anafora-annotations/TimeNorm/test_AQUAINT/'
 train_out = 'out/train'
 test_out = 'out/test'
 
-path = train_path
-out_path = train_out
+path = test_path
+out_path = test_out
 
 tnschema = anafora.get_schema()
+
+#for t in tnschema:
+#    for p in tnschema[t]:
+#        if p == "Interval":
+#            tnschema[t][p] = (False, ["Event"])
 
 import re
 import sys

@@ -914,14 +914,15 @@ def build_graph_typereduce(entitylists, entities, transitions):
     return outputs
 
 # train_path = '/home/egoitz//Data/Datasets/Time/SCATE/anafora-annotations/TimeNorm/train_TimeBank/'
-train_path = '/Users/laparra//Data/Datasets/Time/SCATE/anafora-annotations/TimeNorm/train_TimeBank/'
+#train_path = '/Users/laparra//Data/Datasets/Time/SCATE/anafora-annotations/TimeNorm/train_TimeBank/'
+#train_path = '/home/egoitz//Data/Datasets/Time/SCATE/anafora-annotations/TimeNorm/train_TimeBank/'
 
-links, entities, sequences,  max_seq = getdata(train_path)
-ent,tran,nl,mt,to,ti = get_transitions_typereduce(links,entities,sequences)
+#links, entities, sequences,  max_seq = getdata(train_path)
+#ent,tran,nl,mt,to,ti = get_transitions_typereduce(links,entities,sequences)
 # for t in tran:
 #     print (t)
 #ent,tran,nl = get_transitions(links,entities,sequences)
-outputs = build_graph_typereduce(ent,entities,tran)
+#outputs = build_graph_typereduce(ent,entities,tran)
 
 # for r in links:
 #     for e in links[r]:
