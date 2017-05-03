@@ -23,3 +23,16 @@ def get_schema():
             schema[type][ptype] = (required,instacesOf)
 
     return schema
+    
+def get_types():
+    
+    typefile = open('date-types.txt','r')
+    types = {}
+    for line in typefile:
+        eType, ptype, form = line.rstrip().split(' ')
+        if eType not in types:
+            types[eType] = dict()
+        types[eType][form] = ptype
+    typefile.close()     
+        
+    return types

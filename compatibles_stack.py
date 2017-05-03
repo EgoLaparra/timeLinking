@@ -33,11 +33,12 @@ path = test_path
 out_path = test_out
 
 tnschema = anafora.get_schema()
+types = anafora.get_types()
 
 #for t in tnschema:
 #    for p in tnschema[t]:
 #        if p == "Interval":
-#            tnschema[t][p] = (False, ["Event"])
+#            tnschema[t][p] = (True, ["Event"])
 
 import re
 import sys
@@ -51,8 +52,7 @@ for doc in os.listdir(path):
         entities = dict()
         for entity in axml.findall('.//entity'):
             eid = entity.find('./id').text
-            estart, eend = entity.find('./span').text.split(',')
-            estart, eend = int(estart), int(eend)
+            estart, eend = map(int, entity.find('./span').text.split(','))
             etype = entity.find('./type').text
             eparentsType = entity.find('./parentsType').text
             eproperties = entity.find('./properties')
@@ -64,11 +64,11 @@ for doc in os.listdir(path):
             ent_values = (eid, estart, eend, etype, eparentsType)
             entities[estart].append(ent_values)
 
-        if re.search('PRI19980205.2000.1998',doc):
-            for s in sorted(entities):
-                for e in entities[s]:
-                    end = e[2]
-                    print (e, re.sub(' ', '_', "".join(text[s:end])))
+#        if re.search('PRI19980205.2000.1998',doc):
+#            for s in sorted(entities):
+#                for e in entities[s]:
+#                    end = e[2]
+#                    print (e, re.sub(' ', '_', "".join(text[s:end])))
 
 
         links = dict()
@@ -111,21 +111,46 @@ for doc in os.listdir(path):
         for entity in axml.findall('.//entity'):
             eid = entity.find('./id').text
             etype = entity.find('./type').text
+            estart, eend = map(int, entity.find('./span').text.split(','))
             eproperties = entity.find('./properties')
             if etype in tnschema:
                 for relation in tnschema[etype]:
-                    notnull = False
-                    if eid in links:
-                        if relation in links[eid]:
-                            for child in links[eid][relation]:
+                    span = "".join(text[estart:eend])
+                    if relation == "Type":
+                        ptype = span.title()
+                        if etype in types:
+                            if span in types[etype]:
+                                ptype = types[etype][span]
+                        ty = etree.Element(relation)
+                        ty.text = ptype
+                        eproperties.append(ty)
+                    elif relation == "Value":
+                        val = etree.Element(relation)
+                        val.text = span
+                        eproperties.append(val)
+                    elif re.search('Interval-Type',relation):
+                        intervalemtpy = True
+                        if eid in links:
+                            if "Interval" in links[eid]:
+                                if links[eid]["Interval"] != "":
+                                    intervalemtpy = False
+                        if not intervalemtpy:
+                            itype = etree.Element(relation)
+                            itype.text = "Link"
+                            eproperties.append(itype)
+                    else:
+                        notnull = False
+                        if eid in links:
+                            if relation in links[eid]:
+                                for child in links[eid][relation]:
+                                    si = etree.Element(relation)
+                                    si.text = child
+                                    eproperties.append(si)
+                                    notnull = True
+                        if tnschema[etype][relation][0] and not notnull:
+                            if eproperties.find('./' + relation) is None:
                                 si = etree.Element(relation)
-                                si.text = child
                                 eproperties.append(si)
-                                notnull = True
-                    if tnschema[etype][relation][0] and not notnull:
-                        if eproperties.find('./' + relation) is None:
-                            si = etree.Element(relation)
-                            eproperties.append(si)
 
 
         if not os.path.exists(out_path + '/' + doc):

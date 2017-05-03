@@ -42,42 +42,58 @@ cond = " or ".join(["self::%s" % p for p in props])
 #            print eid, etype, eparensType, " ".join(props)
 
 
-### print property types
-for doc in os.listdir(path):
-    for xmlfile in os.listdir(path + '/' + doc):
-        axml = etree.parse(path + '/' + doc + '/' + xmlfile)
-        rawfile = open(rawpath + '/' + doc, 'r')
-        text = rawfile.read()
-        rawfile.close()
-        for entity in axml.findall('.//entity'):
-            eid = entity.find('./id').text
-            etype = entity.find('./type').text
-            eparentsType = entity.find('./parentsType').text
-            estart, eend = map(int,entity.find('./span').text.split(','))
-            for ptype in entity.xpath('./properties/Type'):
-                print (eid,etype,eparentsType,ptype.text,re.sub(' ', '_', "".join(text[estart:eend])))
-                        
-#### print links with entity pairs                   
+#### print interval info
 #for doc in os.listdir(path):
 #    for xmlfile in os.listdir(path + '/' + doc):
 #        axml = etree.parse(path + '/' + doc + '/' + xmlfile)
+#        rawfile = open(rawpath + '/' + doc, 'r')
+#        text = rawfile.read()
+#        rawfile.close()
 #        for entity in axml.findall('.//entity'):
 #            eid = entity.find('./id').text
 #            etype = entity.find('./type').text
-#            eparensType = entity.find('./parentsType').text
-#            estart, eend = entity.find('./span').text.split(',')
-#            for prop in entity.xpath('./properties/*[' + cond + ']'):
-#                ptag = prop.tag
-#                pid = prop.text
-#                if pid is not None:
-#                    pentity = axml.find('.//entity[id="' + pid + '"]')
-#                    if pentity is not None:
-#                        ptype = pentity.find('./type').text
-#                        pparentsType = pentity.find('./parentsType').text
-#                        pstart, pend = pentity.find('./span').text.split(',')
-#                        print (eid, etype, eparensType, estart, eend, ptag, pid, ptype, pparentsType, pstart, pend, )
-#                    #else:
-#                    #    print "ERROR" + pid
+#            eparentsType = entity.find('./parentsType').text
+#            estart, eend = map(int,entity.find('./span').text.split(','))
+#            for prop in entity.xpath('./properties/Interval-Type'):
+#                print (eid,etype,eparentsType,prop.text,re.sub(' ', '_', "".join(text[estart:eend])))
+
+
+#### print property types
+#for doc in os.listdir(path):
+#    for xmlfile in os.listdir(path + '/' + doc):
+#        axml = etree.parse(path + '/' + doc + '/' + xmlfile)
+#        rawfile = open(rawpath + '/' + doc, 'r')
+#        text = rawfile.read()
+#        rawfile.close()
+#        for entity in axml.findall('.//entity'):
+#            eid = entity.find('./id').text
+#            etype = entity.find('./type').text
+#            eparentsType = entity.find('./parentsType').text
+#            estart, eend = map(int,entity.find('./span').text.split(','))
+#            for ptype in entity.xpath('./properties/Type'):
+#                print (eid,etype,eparentsType,ptype.text,re.sub(' ', '_', "".join(text[estart:eend])))
+                        
+### print links with entity pairs                   
+for doc in os.listdir(path):
+    for xmlfile in os.listdir(path + '/' + doc):
+        axml = etree.parse(path + '/' + doc + '/' + xmlfile)
+        for entity in axml.findall('.//entity'):
+            eid = entity.find('./id').text
+            etype = entity.find('./type').text
+            eparensType = entity.find('./parentsType').text
+            estart, eend = entity.find('./span').text.split(',')
+            for prop in entity.xpath('./properties/*[' + cond + ']'):
+                ptag = prop.tag
+                pid = prop.text
+                if pid is not None:
+                    pentity = axml.find('.//entity[id="' + pid + '"]')
+                    if pentity is not None:
+                        ptype = pentity.find('./type').text
+                        pparentsType = pentity.find('./parentsType').text
+                        pstart, pend = pentity.find('./span').text.split(',')
+                        print (eid, etype, eparensType, estart, eend, ptag, pid, ptype, pparentsType, pstart, pend, )
+                    #else:
+                    #    print "ERROR" + pid
 
 #def getlinks(link, node, xml, cond):
 #    for prop in node.xpath('./properties/*[' + cond + ']'):
