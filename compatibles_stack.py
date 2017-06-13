@@ -21,18 +21,19 @@ def get_relation(tnschema, parent, child):
                         return relation
     return ""
 
-rawpath = '/home/egoitz/Data/Datasets/Time/SCATE/anafora-annotations/TimeNorm/raw/'
-train_path = '/home/egoitz//Data/Datasets/Time/SCATE/anafora-annotations/TimeNorm/train_TimeBank/'
-test_path = '/home/egoitz/Data/Datasets/Time/SCATE/anafora-annotations/TimeNorm/test_AQUAINT/'
-#rawpath = '/Users/laparra/Data/Datasets/Time/SCATE/anafora-annotations/TimeNorm/raw/'
-#train_path = '/Users/laparra//Data/Datasets/Time/SCATE/anafora-annotations/TimeNorm/train_TimeBank/'
-#test_path = '/Users/laparra/Data/Datasets/Time/SCATE/anafora-annotations/TimeNorm/test_AQUAINT/'
-te_path = '/home/egoitz/Code/python/git/TimeLinking/in/715/'
+#rawpath = '/home/egoitz/Data/Datasets/Time/SCATE/anafora-annotations/TimeNorm/raw/'
+#train_path = '/home/egoitz//Data/Datasets/Time/SCATE/anafora-annotations/TimeNorm/train_TimeBank/'
+#test_path = '/home/egoitz/Data/Datasets/Time/SCATE/anafora-annotations/TimeNorm/test_AQUAINT/'
+rawpath = '/Users/laparra/Data/Datasets/Time/SCATE/anafora-annotations/TimeNorm/raw/'
+train_path = '/Users/laparra//Data/Datasets/Time/SCATE/anafora-annotations/TimeNorm/train_TimeBank/'
+test_path = '/Users/laparra/Data/Datasets/Time/SCATE/anafora-annotations/TimeNorm/test_AQUAINT/'
+#te_path = '/home/egoitz/Code/python/git/TimeLinking/in/715/'
+te_path = 'in/794/'
 train_out = 'out/train'
 test_out = 'out/test'
 te_out = 'out/te'
 
-path = te_path
+path = test_path
 out_path = test_out
 
 tnschema = anafora.get_schema()
@@ -121,7 +122,6 @@ for doc in os.listdir(path):
                 stack.append(eid)
 
 
-
         for entity in axml.findall('.//entity'):
             eid = entity.find('./id').text
             etype = entity.find('./type').text
@@ -141,6 +141,7 @@ for doc in os.listdir(path):
                             eproperties.append(ty)
                         elif relation == "Value":
                             val = etree.Element(relation)
+                            span = re.sub(r'^0(\d)', r'\1', re.sub(r'^0+', '0', span))
                             val.text = span
                             eproperties.append(val)
                         elif re.search('Interval-Type',relation):
@@ -152,6 +153,10 @@ for doc in os.listdir(path):
                             if not intervalemtpy:
                                 itype = etree.Element(relation)
                                 itype.text = "Link"
+                                eproperties.append(itype)
+                            else:
+                                itype = etree.Element(relation)
+                                itype.text = "DocTime"
                                 eproperties.append(itype)
                         else:
                             notnull = False
@@ -166,6 +171,7 @@ for doc in os.listdir(path):
                                 if eproperties.find('./' + relation) is None:
                                     si = etree.Element(relation)
                                     eproperties.append(si)
+
     
 
         if not os.path.exists(out_path + '/' + doc):

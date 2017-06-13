@@ -3,8 +3,8 @@ from lxml import etree
 
 def get_schema():
 
-    #tnschema = etree.parse('/Users/laparra/Data/Datasets/Time/SCATE/anafora-annotations/.schema/timenorm-schema.xml')
-    tnschema = etree.parse('/home/egoitz/Data/Datasets/Time/SCATE/anafora-annotations/.schema/timenorm-schema.xml')
+    tnschema = etree.parse('/Users/laparra/Data/Datasets/Time/SCATE/anafora-annotations/.schema/timenorm-schema.xml')
+    #tnschema = etree.parse('/home/egoitz/Data/Datasets/Time/SCATE/anafora-annotations/.schema/timenorm-schema.xml')
     schema = dict()
     for parent_entity in tnschema.findall('.//entities'):
         parentstype = parent_entity.get('type')
