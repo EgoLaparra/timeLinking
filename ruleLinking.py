@@ -13,6 +13,29 @@ from lxml import etree
 import os
 import re
 import sys
+import configparser
+
+
+config = configparser.ConfigParser()
+config.read('link.conf')
+rawpath = config['DATA']['raw']
+dctpath = config['DATA']['dct']
+tn_schema = config['DATA']['schema']
+date_types = config['DATA']['types']
+
+parser = argparse.ArgumentParser(description='t4f-NN with domain adaptation.')
+parser.add_argument('--in',
+                    help='input directory.')
+parser.add_argument('--out',
+                    help='output directory.')
+args = parser.parse_args()
+path = args.in
+out_path = args.out
+
+tnschema = anafora.get_schema(tn_schema)
+types = anafora.get_types(date_types)
+
+
 
 def get_relation(tnschema, parent, child):
     if parent in tnschema:
@@ -23,27 +46,8 @@ def get_relation(tnschema, parent, child):
                         return relation
     return ""
 
-rawpath = '/home/egoitz/Data/Datasets/Time/SCATE/anafora-annotations/TimeNorm/raw/'
-dctpath = '/home/egoitz/Data/Datasets/Time/SCATE/anafora-annotations/TimeNorm/dct/'
-train_path = '/home/egoitz//Data/Datasets/Time/SCATE/anafora-annotations/TimeNorm/train_TimeBank/'
-test_path = '/home/egoitz/Data/Datasets/Time/SCATE/anafora-annotations/TimeNorm/test_AQUAINT/'
-#rawpath = '/Users/laparra/Data/Datasets/Time/SCATE/anafora-annotations/TimeNorm/raw/'
-#dctpath = '/Users/laparra/Data/Datasets/Time/SCATE/anafora-annotations/TimeNorm/dct/'
-#train_path = '/Users/laparra//Data/Datasets/Time/SCATE/anafora-annotations/TimeNorm/train_TimeBank/'
-#test_path = '/Users/laparra/Data/Datasets/Time/SCATE/anafora-annotations/TimeNorm/test_AQUAINT/'
-#te_path = 'in/715/'
-te_path = 'in/794/'
-train_out = 'out/train'
-test_out = 'out/test'
-#te_out = 'out/te'
 
-path = test_path
-out_path = test_out
-
-tnschema = anafora.get_schema()
-types = anafora.get_types()
-
-for doc in os.listdir(path):
+def process_doc(doc):
     for xmlfile in os.listdir(path + '/' + doc):
         axml = etree.parse(path + '/' + doc + '/' + xmlfile)
         rawfile = open(rawpath + '/' + doc, 'r')
@@ -193,3 +197,8 @@ for doc in os.listdir(path):
         if not os.path.exists(out_path + '/' + doc):
             os.makedirs(out_path + '/' + doc)
         axml.write(out_path + '/' + doc + '/' + xmlfile, pretty_print=True)
+
+
+if __name__ == "__main__":
+    for doc in os.listdir(path):
+        process_doc(doc)
