@@ -14,6 +14,7 @@ import os
 import re
 import sys
 import configparser
+import argparse
 
 
 config = configparser.ConfigParser()
@@ -24,13 +25,13 @@ tn_schema = config['DATA']['schema']
 date_types = config['DATA']['types']
 
 parser = argparse.ArgumentParser(description='t4f-NN with domain adaptation.')
-parser.add_argument('--in',
+parser.add_argument('--input',
                     help='input directory.')
-parser.add_argument('--out',
+parser.add_argument('--output',
                     help='output directory.')
 args = parser.parse_args()
-path = args.in
-out_path = args.out
+path = args.input
+out_path = args.output
 
 tnschema = anafora.get_schema(tn_schema)
 types = anafora.get_types(date_types)
@@ -50,11 +51,11 @@ def get_relation(tnschema, parent, child):
 def process_doc(doc):
     for xmlfile in os.listdir(path + '/' + doc):
         axml = etree.parse(path + '/' + doc + '/' + xmlfile)
-        rawfile = open(rawpath + '/' + doc, 'r')
+        rawfile = open(os.path.join(rawpath, doc, doc + ".txt"), 'r')
         text = rawfile.read()
-        rawfile.close()nu
+        rawfile.close()
 
-        dctfile = open(dctpath + '/' + doc, 'r')
+        dctfile = open(os.path.join(dctpath, doc, doc + ".dct"), 'r')
         dct = dctfile.read().rstrip()
         dctfile.close()
         try:

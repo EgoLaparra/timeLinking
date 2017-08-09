@@ -3,8 +3,8 @@ import os
 from lxml import etree
 import dateutil.parser as dprs
 
-rawpath = '/home/egoitz/Data/Datasets/Time/SCATE/anafora-annotations/TimeNorm/raw/'
-train_path = '/home/egoitz//Data/Datasets/Time/SCATE/anafora-annotations/TimeNorm/train_TimeBank/'
+rawpath = ''
+train_path = ''
 
 
 def getexpression(entity, entities, expression):
