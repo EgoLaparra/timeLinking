@@ -139,6 +139,12 @@ for doc in os.listdir(path):
                             if etype in types:
                                 if span in types[etype]:
                                     ptype = types[etype][span]
+                            if etype == "Calendar-Interval" and ptype != "Unknown":
+                                if ptype.endswith("s"):
+                                    ptype = ptype[:-1]
+                            elif etype == "Period" and ptype != "Unknown":
+                                if not ptype.endswith("s"):
+                                    ptype += "s"
                             ty = etree.Element(relation)
                             ty.text = ptype
                             eproperties.append(ty)
