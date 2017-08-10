@@ -6,7 +6,7 @@ Created on Sat Feb 18 18:50:43 2017
 @author: egoitz
 """
 
-import getseqs, anafora, text2num
+import ≈ß©anafora, text2num
 import dateutil.parser as dprs
 
 from lxml import etree
