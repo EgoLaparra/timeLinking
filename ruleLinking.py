@@ -175,7 +175,7 @@ def process_doc(doc):
                                 eproperties.append(itype)
                         elif relation == "Semantics":
                             sem = etree.Element(relation)
-                            sem.text = "Standard"
+                            sem.text = "Interval-Not-Included"
                             eproperties.append(sem)
                         else:
                             notnull = False
